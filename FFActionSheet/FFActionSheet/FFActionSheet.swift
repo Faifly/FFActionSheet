@@ -39,7 +39,7 @@ public class FFActionSheet: UIViewController
     open var highlitedColor : UIColor = .lightGray
     open var handler: ((_ index: Int) -> ())?
     
-    var dimView = UIView()
+    private var dimView = UIView()
     
     // MARK: Init
     
@@ -49,21 +49,21 @@ public class FFActionSheet: UIViewController
 
         let items = titles.map({FFActionSheetItem.init(text: $0, image: nil)})
         
-        self.setupViews(views: self.createViews(items: items))
+        setupViewsPosition(views: self.createViews(items: items))
     }
     
     public init(items: [FFActionSheetItem])
     {
         super.init(nibName: nil, bundle: nil)
         
-        self.setupViews(views: self.createViews(items: items))
+        setupViewsPosition(views: self.createViews(items: items))
     }
     
     public init(views : [UIView])
     {
         super.init(nibName: nil, bundle: nil)
         
-        self.setupViews(views: views)
+        setupViewsPosition(views: views)
     }
     
     required public init?(coder aDecoder: NSCoder)
@@ -91,10 +91,10 @@ public class FFActionSheet: UIViewController
             button.layer.cornerRadius = 10.0
             button.setTitle(item.text, for: .normal)
             button.setTitleColor(item.fontColor, for: .normal)
-            button.setBackgroundImage(self.getImageWithColor(color: self.highlitedColor, size: self.view.bounds.size), for: .highlighted)
+            button.setBackgroundImage(self.createImage(color: self.highlitedColor, size: self.view.bounds.size), for: .highlighted)
             button.backgroundColor = .clear
             button.tag = count
-            button.addTarget(self, action: #selector(buttonAction), for: .touchUpInside)
+            button.addTarget(self, action: #selector(onButtonTap), for: .touchUpInside)
             
             view.addSubview(button)
             
@@ -118,7 +118,7 @@ public class FFActionSheet: UIViewController
     
     // MARK: Setup views
     
-    func setupViews(views : [UIView])
+    func setupViewsPosition(views : [UIView])
     {
         var count = 0;
         
@@ -162,7 +162,7 @@ public class FFActionSheet: UIViewController
     
     // MARK: Button action
     
-    func buttonAction(sender: UIButton!)
+    func onButtonTap(sender: UIButton!)
     {
         if let buttonHandler = self.handler
         {
@@ -180,7 +180,7 @@ public class FFActionSheet: UIViewController
     
     // MARK: Create button image
     
-    func getImageWithColor(color: UIColor, size: CGSize) -> UIImage
+    func createImage(color: UIColor, size: CGSize) -> UIImage
     {
         let rect = CGRect(x: 0, y: 0, width: size.width, height: size.height)
         UIGraphicsBeginImageContextWithOptions(size, false, 0)
@@ -207,6 +207,8 @@ public class FFActionSheet: UIViewController
         UIView.animate(withDuration: 0.25, animations: { () -> Void in
             self.dimView.alpha = 0.5
         })
+        
+        self.modalPresentationStyle = .overCurrentContext
         
         viewController.present(self, animated: true, completion: nil)
     }
