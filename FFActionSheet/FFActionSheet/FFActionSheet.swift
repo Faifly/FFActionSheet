@@ -8,30 +8,18 @@
 
 import UIKit
 
+public class FFActionSheetItem: NSObject
+{
+    open var text : String!
+    open var image : UIImage? = nil
+    open var backgroundColor : UIColor? = .white
+    open var font : UIFont? = .systemFont(ofSize: 14.0)
+    open var fontSize : CGFloat? = 14.0
+    open var fontColor : UIColor? = .black
+}
+
 public class FFActionSheet: UIViewController
 {
-    // MARK: FFActionSheetItem struct
-    
-    public struct FFActionSheetItem
-    {
-        var text : String!
-        var image : UIImage?
-        var backgroundColor : UIColor?
-        var font : UIFont?
-        var fontSize : CGFloat?
-        var fontColor : UIColor?
-        
-        public init(text: String, image: UIImage? = nil, backgroundColor: UIColor? = .white, font: UIFont? = .systemFont(ofSize: 14.0), fontSize: CGFloat? = 14.0, fontColor: UIColor? = .black, selectAction: ((_ actionSheet: FFActionSheet) -> Void)? = nil)
-        {
-            self.text = text
-            self.image = image
-            self.backgroundColor = backgroundColor
-            self.font = font
-            self.fontSize = fontSize
-            self.fontColor = fontColor
-        }
-    }
-    
     // MARK: Properties
     
     open var backgroundColor : UIColor = .white
@@ -46,8 +34,12 @@ public class FFActionSheet: UIViewController
     public init(titles: [String])
     {
         super.init(nibName: nil, bundle: nil)
-
-        let items = titles.map({FFActionSheetItem.init(text: $0, image: nil)})
+        
+        let items = titles.map { (title) -> FFActionSheetItem in
+            let item = FFActionSheetItem()
+            item.text = title
+            return item
+        }
         
         setupViewsPosition(views: self.createViews(items: items))
     }
