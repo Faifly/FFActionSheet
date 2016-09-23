@@ -9,6 +9,6 @@ spec.authors = { "Ihor Embaievskyi" => 'ihor.embaievskyi@gmail.com' }
 spec.platform = :ios, "8.0"
 spec.requires_arc = true
 spec.source = { git: "https://github.com/Faifly/FFActionSheet"}
-spec.source_files = "FFActionSheet/FFActionSheet/FFActionSheet/*.{h,swift}"
+spec.source_files = "FFActionSheet/FFActionSheet/*.{h,swift}"
 
 end
