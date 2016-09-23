@@ -45,21 +45,21 @@ public class FFActionSheet: UIViewController
             return item
         }
         
-        setupViewsPosition(views: self.createViews(items: items))
+        self.setupViewsPosition(views: self.createViews(items: items))
     }
     
     public init(items: [FFActionSheetItem])
     {
         super.init(nibName: nil, bundle: nil)
         
-        setupViewsPosition(views: self.createViews(items: items))
+        self.setupViewsPosition(views: self.createViews(items: items))
     }
     
     public init(views : [UIView])
     {
         super.init(nibName: nil, bundle: nil)
         
-        setupViewsPosition(views: views)
+        self.setupViewsPosition(views: views)
     }
     
     required public init?(coder aDecoder: NSCoder)
@@ -72,8 +72,6 @@ public class FFActionSheet: UIViewController
     func createViews(items: [FFActionSheetItem]) -> [UIView]
     {
         var views = [UIView]()
-        
-        var count = 0;
         
         for item in items
         {
@@ -111,8 +109,6 @@ public class FFActionSheet: UIViewController
             }
             
             self.setupConstraints(item: button, toItem: view, horizontalConstant: 0.0, topConstant: 0.0, bottomConstant: 0.0)
-            
-            count = count + 1
             
             views.append(view)
         }
@@ -174,7 +170,7 @@ public class FFActionSheet: UIViewController
         
         UIView.animate(withDuration: 0.25, animations: {
             self.dimView.alpha = 0.0
-        }) { (complete) in
+        }) {[unowned self] (complete) in
             self.dimView.removeFromSuperview()
         }
         
@@ -200,10 +196,10 @@ public class FFActionSheet: UIViewController
     public func showActionSheet(from viewController: UIViewController)
     {
         self.dimWindow = UIWindow(frame: UIScreen.main.bounds)
-        self.dimWindow?.rootViewController = UIViewController()
+        self.dimWindow!.rootViewController = UIViewController()
         
         let topWindow = UIApplication.shared.windows.last
-        self.dimWindow?.windowLevel = topWindow!.windowLevel + 1
+        self.dimWindow!.windowLevel = topWindow!.windowLevel + 1
         
         self.dimView = UIView(frame: (dimWindow?.frame)!)
         
@@ -212,7 +208,8 @@ public class FFActionSheet: UIViewController
         
         dimWindow?.addSubview(self.dimView)
         
-        UIView.animate(withDuration: 0.25, animations: { () -> Void in
+        
+        UIView.animate(withDuration: 0.25, animations: {[unowned self] () -> Void in
             self.dimView.alpha = CGFloat(self.dimViewAlpha)
         })
         
