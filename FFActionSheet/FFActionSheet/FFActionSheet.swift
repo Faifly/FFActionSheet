@@ -16,8 +16,8 @@ public class FFActionSheetItem: NSObject
     open var font : UIFont? = .systemFont(ofSize: 14.0)
     open var fontColor : UIColor? = .black
     open var tag : Int = 0
-    open var buttonImageEdgeInsets : Array? = [0.0, 10.0, 0.0, 15.0]
-    open var buttonTitleEdgeInsets : Array? = [0.0, 15.0, 0.0, 10.0]
+    open var buttonImageEdgeInsets = UIEdgeInsets(top: 0.0, left: 10.0, bottom: 0.0, right: 15.0)
+    open var buttonTitleEdgeInsets = UIEdgeInsets(top: 0.0, left: 15.0, bottom: 0.0, right: 10.0)
 }
 
 public class FFActionSheet: UIViewController
@@ -28,6 +28,7 @@ public class FFActionSheet: UIViewController
     open var itemHeight : CGFloat = 45.0
     open var highlitedColor : UIColor = .lightGray
     open var handler: ((_ index: Int) -> ())?
+    open var dimViewAlpha = 0.5
     
     private var dimView = UIView()
     private var dimWindow: UIWindow?
@@ -105,8 +106,8 @@ public class FFActionSheet: UIViewController
                 button.setImage(buttonImage, for: .normal)
                 button.setImage(buttonImage, for: .highlighted)
                 
-                button.imageEdgeInsets = UIEdgeInsetsMake(CGFloat(item.buttonImageEdgeInsets![0]), CGFloat((item.buttonImageEdgeInsets?[1])!), CGFloat((item.buttonImageEdgeInsets?[2])!), CGFloat((item.buttonImageEdgeInsets?[3])!));
-                button.titleEdgeInsets = UIEdgeInsetsMake(CGFloat(item.buttonTitleEdgeInsets![0]), CGFloat((item.buttonTitleEdgeInsets?[1])!), CGFloat((item.buttonTitleEdgeInsets?[2])!), CGFloat((item.buttonTitleEdgeInsets?[3])!));
+                button.imageEdgeInsets = item.buttonImageEdgeInsets
+                button.titleEdgeInsets = item.buttonTitleEdgeInsets
             }
             
             self.setupConstraints(item: button, toItem: view, horizontalConstant: 0.0, topConstant: 0.0, bottomConstant: 0.0)
@@ -181,7 +182,7 @@ public class FFActionSheet: UIViewController
         self.dismiss(animated: true, completion: nil)
     }
     
-    // MARK: Image
+    // MARK: Create Image
     
     func createImage(color: UIColor, size: CGSize) -> UIImage
     {
@@ -192,33 +193,6 @@ public class FFActionSheet: UIViewController
         let image: UIImage = UIGraphicsGetImageFromCurrentImageContext()!
         UIGraphicsEndImageContext()
         return image
-    }
-    
-    func resizeImage(image: UIImage, targetSize: CGSize) -> UIImage
-    {
-        let size = image.size
-        
-        let widthRatio  = targetSize.width  / image.size.width
-        let heightRatio = targetSize.height / image.size.height
-        
-        var newSize: CGSize
-        if(widthRatio > heightRatio)
-        {
-            newSize = CGSize(width: size.width * heightRatio, height: size.height * heightRatio)
-        }
-        else
-        {
-            newSize = CGSize(width: size.width * widthRatio,  height: size.height * widthRatio)
-        }
-        
-        let rect = CGRect(x: 0, y: 0, width: newSize.width, height: newSize.height)
-        
-        UIGraphicsBeginImageContextWithOptions(newSize, false, 1.0)
-        image.draw(in: rect)
-        let newImage = UIGraphicsGetImageFromCurrentImageContext()
-        UIGraphicsEndImageContext()
-        
-        return newImage!
     }
     
     // MARK: Show Action Sheet
@@ -239,7 +213,7 @@ public class FFActionSheet: UIViewController
         dimWindow?.addSubview(self.dimView)
         
         UIView.animate(withDuration: 0.25, animations: { () -> Void in
-            self.dimView.alpha = 0.5
+            self.dimView.alpha = CGFloat(self.dimViewAlpha)
         })
         
         self.dimWindow?.makeKeyAndVisible()
