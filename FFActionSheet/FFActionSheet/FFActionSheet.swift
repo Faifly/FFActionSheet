@@ -168,6 +168,11 @@ public class FFActionSheet: UIViewController
             buttonHandler(sender.tag)
         }
         
+        self.dismiss()
+    }
+    
+    public func dismiss()
+    {
         UIView.animate(withDuration: 0.25, animations: {
             self.dimView.alpha = 0.0
         }) {[unowned self] (complete) in
