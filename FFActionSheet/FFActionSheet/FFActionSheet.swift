@@ -8,62 +8,58 @@
 
 import UIKit
 
+public class FFActionSheetItem: NSObject
+{
+    open var text : String!
+    open var image : UIImage? = nil
+    open var backgroundColor : UIColor? = .white
+    open var font : UIFont? = .systemFont(ofSize: 14.0)
+    open var fontColor : UIColor? = .black
+    open var tag : Int = 0
+    open var buttonImageEdgeInsets = UIEdgeInsets(top: 0.0, left: 10.0, bottom: 0.0, right: 15.0)
+    open var buttonTitleEdgeInsets = UIEdgeInsets(top: 0.0, left: 15.0, bottom: 0.0, right: 10.0)
+}
+
 public class FFActionSheet: UIViewController
 {
-    // MARK: FFActionSheetItem struct
-    
-    public struct FFActionSheetItem
-    {
-        var text : String!
-        var image : UIImage?
-        var backgroundColor : UIColor?
-        var font : UIFont?
-        var fontSize : CGFloat?
-        var fontColor : UIColor?
-        
-        public init(text: String, image: UIImage? = nil, backgroundColor: UIColor? = .white, font: UIFont? = .systemFont(ofSize: 14.0), fontSize: CGFloat? = 14.0, fontColor: UIColor? = .black, selectAction: ((_ actionSheet: FFActionSheet) -> Void)? = nil)
-        {
-            self.text = text
-            self.image = image
-            self.backgroundColor = backgroundColor
-            self.font = font
-            self.fontSize = fontSize
-            self.fontColor = fontColor
-        }
-    }
-    
     // MARK: Properties
     
     open var backgroundColor : UIColor = .white
     open var itemHeight : CGFloat = 45.0
     open var highlitedColor : UIColor = .lightGray
     open var handler: ((_ index: Int) -> ())?
+    open var dimViewAlpha = 0.5
     
     private var dimView = UIView()
+    private var dimWindow: UIWindow?
     
     // MARK: Init
     
     public init(titles: [String])
     {
         super.init(nibName: nil, bundle: nil)
-
-        let items = titles.map({FFActionSheetItem.init(text: $0, image: nil)})
         
-        setupViewsPosition(views: self.createViews(items: items))
+        let items = titles.map { (title) -> FFActionSheetItem in
+            let item = FFActionSheetItem()
+            item.text = title
+            return item
+        }
+        
+        self.setupViewsPosition(views: self.createViews(items: items))
     }
     
     public init(items: [FFActionSheetItem])
     {
         super.init(nibName: nil, bundle: nil)
         
-        setupViewsPosition(views: self.createViews(items: items))
+        self.setupViewsPosition(views: self.createViews(items: items))
     }
     
     public init(views : [UIView])
     {
         super.init(nibName: nil, bundle: nil)
         
-        setupViewsPosition(views: views)
+        self.setupViewsPosition(views: views)
     }
     
     required public init?(coder aDecoder: NSCoder)
@@ -77,8 +73,6 @@ public class FFActionSheet: UIViewController
     {
         var views = [UIView]()
         
-        var count = 0;
-        
         for item in items
         {
             let view = UIView()
@@ -89,27 +83,32 @@ public class FFActionSheet: UIViewController
             button.translatesAutoresizingMaskIntoConstraints = false
             button.clipsToBounds = true
             button.layer.cornerRadius = 10.0
+            button.titleLabel?.font = item.font
             button.setTitle(item.text, for: .normal)
             button.setTitleColor(item.fontColor, for: .normal)
             button.setBackgroundImage(self.createImage(color: self.highlitedColor, size: self.view.bounds.size), for: .highlighted)
             button.backgroundColor = .clear
-            button.tag = count
+            button.tag = item.tag
             button.addTarget(self, action: #selector(onButtonTap), for: .touchUpInside)
             
             view.addSubview(button)
             
             if item.image != nil
             {
-                button.setImage(item.image, for: .normal)
-                button.setImage(item.image, for: .highlighted)
+                var buttonImage = UIImage()
                 
-                button.imageEdgeInsets = UIEdgeInsetsMake(0.0, 10.0, 0.0, 15.0)
-                button.titleEdgeInsets = UIEdgeInsetsMake(0.0, 15.0, 0.0, 10.0)
+                buttonImage = item.image!
+                
+                button.imageView?.contentMode = .scaleAspectFit
+                
+                button.setImage(buttonImage, for: .normal)
+                button.setImage(buttonImage, for: .highlighted)
+                
+                button.imageEdgeInsets = item.buttonImageEdgeInsets
+                button.titleEdgeInsets = item.buttonTitleEdgeInsets
             }
             
             self.setupConstraints(item: button, toItem: view, horizontalConstant: 0.0, topConstant: 0.0, bottomConstant: 0.0)
-            
-            count = count + 1
             
             views.append(view)
         }
@@ -169,16 +168,22 @@ public class FFActionSheet: UIViewController
             buttonHandler(sender.tag)
         }
         
-        UIView.animate(withDuration: 0.25, animations: { 
+        self.dismiss()
+    }
+    
+    public func dismiss()
+    {
+        UIView.animate(withDuration: 0.25, animations: {
             self.dimView.alpha = 0.0
-            }) { (complete) in
-                self.dimView.removeFromSuperview()
+        }) {[weak self] (complete) in
+            self?.dimView.removeFromSuperview()
         }
         
+        self.dimWindow = nil
         self.dismiss(animated: true, completion: nil)
     }
     
-    // MARK: Create button image
+    // MARK: Create Image
     
     func createImage(color: UIColor, size: CGSize) -> UIImage
     {
@@ -195,21 +200,25 @@ public class FFActionSheet: UIViewController
     
     public func showActionSheet(from viewController: UIViewController)
     {
-        self.dimView = UIView(frame: view.frame)
+        self.dimWindow = UIWindow(frame: UIScreen.main.bounds)
+        self.dimWindow!.rootViewController = UIViewController()
+        
+        let topWindow = UIApplication.shared.windows.last
+        self.dimWindow!.windowLevel = topWindow!.windowLevel + 1
+        
+        self.dimView = UIView(frame: (dimWindow?.frame)!)
+        
         self.dimView.backgroundColor = .black
         self.dimView.alpha = 0.0
-        viewController.view.addSubview(dimView)
         
-        self.dimView.translatesAutoresizingMaskIntoConstraints = false
-        viewController.view.addConstraints(NSLayoutConstraint.constraints(withVisualFormat: "|[dimView]|", options: [], metrics: nil, views: ["dimView": self.dimView]))
-        viewController.view.addConstraints(NSLayoutConstraint.constraints(withVisualFormat: "V:|[dimView]|", options: [], metrics: nil, views: ["dimView": self.dimView]))
+        dimWindow?.addSubview(self.dimView)
         
-        UIView.animate(withDuration: 0.25, animations: { () -> Void in
-            self.dimView.alpha = 0.5
+        
+        UIView.animate(withDuration: 0.25, animations: {[unowned self] () -> Void in
+            self.dimView.alpha = CGFloat(self.dimViewAlpha)
         })
         
-        self.modalPresentationStyle = .overCurrentContext
-        
-        viewController.present(self, animated: true, completion: nil)
+        self.dimWindow?.makeKeyAndVisible()
+        self.dimWindow?.rootViewController?.present(self, animated: true, completion: nil)
     }
 }
