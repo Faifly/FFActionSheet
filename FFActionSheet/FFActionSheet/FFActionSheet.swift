@@ -175,8 +175,8 @@ public class FFActionSheet: UIViewController
     {
         UIView.animate(withDuration: 0.25, animations: {
             self.dimView.alpha = 0.0
-        }) {[unowned self] (complete) in
-            self.dimView.removeFromSuperview()
+        }) {[weak self] (complete) in
+            self?.dimView.removeFromSuperview()
         }
         
         self.dimWindow = nil
